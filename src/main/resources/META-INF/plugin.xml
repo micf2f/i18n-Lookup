@@ -1,8 +1,7 @@
-<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <id>com.github.micf2f.i18nlookup</id>
     <name>i18n-Lookup</name>
-    <vendor>micf2f</vendor>
+    <vendor email="micf2f@gmail.com" url="https://github.com/micf2f/i18n-Lookup">micf2f</vendor>
     <description><![CDATA[
         <p><b>i18n-Lookup</b> shows your translations right where you use them.</p>
         <ul>
