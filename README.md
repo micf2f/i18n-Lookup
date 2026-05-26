@@ -1,8 +1,8 @@
 # i18n-Lookup
 
 ![Build](https://github.com/micf2f/i18n-Lookup/workflows/Build/badge.svg)
-[![Version](https://img.shields.io/jetbrains/plugin/v/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
-[![Downloads](https://img.shields.io/jetbrains/plugin/d/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
+[![Version](https://img.shields.io/jetbrains/plugin/v/31973.svg)](https://plugins.jetbrains.com/plugin/31973)
+[![Downloads](https://img.shields.io/jetbrains/plugin/d/31973.svg)](https://plugins.jetbrains.com/plugin/31973)
 
 > See your i18n translations right where you use them — without leaving the file.
 
