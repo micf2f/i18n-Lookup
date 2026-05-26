@@ -48,6 +48,39 @@ class I18nKeyMatcherTest {
     }
 
     @Test
+    fun matchesChainedPropertyAccess() {
+        val matcher = I18nKeyMatcher(listOf("t"), emptyList())
+        val text = "const x = {t('reset').email_placeholder}"
+        val match = matcher.findMatches(text).single()
+        assertEquals("reset.email_placeholder", match.key)
+        assertEquals("reset').email_placeholder", text.substring(match.start, match.end))
+    }
+
+    @Test
+    fun matchesChainedMultiSegmentPropertyAccess() {
+        val matcher = I18nKeyMatcher(listOf("t"), emptyList())
+        val keys = matcher.findMatches("t('forms').email.placeholder").map { it.key }
+        assertEquals(listOf("forms.email.placeholder"), keys)
+    }
+
+    @Test
+    fun matchesLongChainedPropertyAccess() {
+        val matcher = I18nKeyMatcher(listOf("t"), emptyList())
+        val text = "{t('reset').password_placeholder.key2.key3.key4}"
+        val match = matcher.findMatches(text).single()
+        assertEquals("reset.password_placeholder.key2.key3.key4", match.key)
+    }
+
+    @Test
+    fun plainCallStillMatchesWhenNoChain() {
+        val matcher = I18nKeyMatcher(listOf("t"), emptyList())
+        val text = "t('hello.world');"
+        val match = matcher.findMatches(text).single()
+        assertEquals("hello.world", match.key)
+        assertEquals("hello.world", text.substring(match.start, match.end))
+    }
+
+    @Test
     fun emptyConfigMatchesNothing() {
         val matcher = I18nKeyMatcher(emptyList(), emptyList())
         assertTrue(matcher.isEmpty)

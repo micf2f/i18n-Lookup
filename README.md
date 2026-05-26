@@ -16,7 +16,7 @@ i18n-Lookup is a JetBrains IDE plugin for JavaScript and TypeScript projects. It
 - **Click-through navigation** — click a language in the popup, or `Ctrl`/`Cmd`+click an inline badge, to jump straight to that key in its JSON file.
 - **Nested *and* flat keys** — `{"a":{"b":"x"}}` and `{"a.b":"x"}` both resolve to `a.b`.
 - **Live refresh** — edits to your translation files show up immediately, no editor reload needed.
-- **Recognized call shapes** — `t('key')`, `i18n.t('key')`, `$t('key')`, `translate('key')`, plus any custom regex you add.
+- **Recognized call shapes** — `t('key')`, `i18n.t('key')`, `$t('key')`, `translate('key')`, plus any custom regex you add. Chained property access on the call result is also recognized — e.g. `t('forms').email.placeholder` resolves to `forms.email.placeholder`.
 - **"Not found" indicators** — distinct visuals for keys missing in all languages versus keys missing in just some languages.
 
 ## Setup

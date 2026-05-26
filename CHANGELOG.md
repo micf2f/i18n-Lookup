@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-05-27
+### Added
+- Recognize chained property access after a translation call: `t('forms').email.placeholder` resolves to the key `forms.email.placeholder` (any number of trailing `.segment` parts is supported).
+
 ## [1.0.0] - 2026-05-26
 ### Added
 - Hover tooltip view: see translation(s) in a popup when hovering an i18n key.
