@@ -1,13 +1,11 @@
 package com.github.micf2f.i18nlookup.core
 
 import com.github.micf2f.i18nlookup.settings.I18nSettings
-import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.json.psi.JsonFile
 import com.intellij.json.psi.JsonObject
 import com.intellij.json.psi.JsonStringLiteral
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
@@ -23,13 +21,16 @@ import com.intellij.psi.PsiTreeChangeEvent
 @Service(Service.Level.PROJECT)
 class TranslationService(private val project: Project) : Disposable {
 
-    data class LangResult(val file: VirtualFile, val value: String?, val offset: Int)
+    data class LangResult(val file: VirtualFile, val value: String?, val offset: Int, val sourceLabel: String?)
 
     private data class Entry(val value: String, val offset: Int)
     private data class Parsed(val stamp: Long, val entries: Map<String, Entry>)
 
     @Volatile private var cache: Map<String, Parsed> = emptyMap()
     @Volatile private var orderedFiles: List<VirtualFile> = emptyList()
+    @Volatile private var fileLabels: Map<String, String> = emptyMap()
+
+    fun isMultiSource(): Boolean = configuredPaths().size > 1
 
     init {
         project.messageBus.connect(this).subscribe(
@@ -60,25 +61,33 @@ class TranslationService(private val project: Project) : Disposable {
     fun lookupAll(key: String): List<LangResult> {
         ensureLoaded()
         val parsedByPath = cache
+        val labels = fileLabels
         return orderedFiles.map { file ->
             val entry = parsedByPath[file.path]?.entries?.get(key)
-            LangResult(file, entry?.value, entry?.offset ?: -1)
+            LangResult(file, entry?.value, entry?.offset ?: -1, labels[file.path])
         }
     }
 
     fun invalidate() {
         cache = emptyMap()
         orderedFiles = emptyList()
+        fileLabels = emptyMap()
     }
 
     override fun dispose() = Unit
 
     private fun isWatchedTranslationPath(path: String): Boolean {
         if (!path.endsWith(".json", ignoreCase = true)) return false
-        val configured = I18nSettings.getInstance(project).state.translationFilePath
-        if (configured.isBlank()) return false
-        val root = configured.replace('\\', '/').trimEnd('/')
-        return path == root || path.startsWith("$root/")
+        return configuredPaths().any { configured ->
+            val root = configured.replace('\\', '/').trimEnd('/')
+            path == root || path.startsWith("$root/")
+        }
+    }
+
+    private fun configuredPaths(): List<String> {
+        val state = I18nSettings.getInstance(project).state
+        return listOf(state.translationFilePath, state.additionalTranslationFilePath)
+            .filter { it.isNotBlank() }
     }
 
     private fun refreshOpenEditors() {
@@ -87,7 +96,7 @@ class TranslationService(private val project: Project) : Disposable {
         ApplicationManager.getApplication().invokeLater {
             if (project.isDisposed) return@invokeLater
             resetDeclarativeInlayPassCache()
-            DaemonCodeAnalyzer.getInstance(project).restart()
+            restartCodeHighlighting(project)
         }
     }
 
@@ -114,22 +123,22 @@ class TranslationService(private val project: Project) : Disposable {
 
     @Synchronized
     private fun ensureLoaded() {
-        val path = I18nSettings.getInstance(project).state.translationFilePath
-        if (path.isBlank()) {
+        val paths = configuredPaths()
+        if (paths.isEmpty()) {
             clear()
             return
         }
-        val root = resolve(path)
-        if (root == null) {
-            clear()
-            return
-        }
-        val files = if (root.isDirectory) {
-            root.children
-                .filter { !it.isDirectory && it.extension.equals("json", ignoreCase = true) }
-                .sortedBy { it.name }
-        } else {
-            listOf(root)
+        val multiSource = paths.size > 1
+        val labels = if (multiSource) sourceLabels(paths) else emptyList()
+        val files = ArrayList<VirtualFile>()
+        val labelByPath = HashMap<String, String>()
+        paths.forEachIndexed { index, path ->
+            for (file in collectJsonFiles(path)) {
+                if (files.none { it.path == file.path }) {
+                    files.add(file)
+                    if (multiSource) labelByPath[file.path] = labels[index]
+                }
+            }
         }
         if (files.isEmpty()) {
             clear()
@@ -138,7 +147,7 @@ class TranslationService(private val project: Project) : Disposable {
 
         val previous = cache
         val updated = HashMap<String, Parsed>(files.size)
-        ReadAction.run<RuntimeException> {
+        ApplicationManager.getApplication().runReadAction {
             for (file in files) {
                 val stamp = file.modificationStamp
                 val cached = previous[file.path]
@@ -148,11 +157,32 @@ class TranslationService(private val project: Project) : Disposable {
         }
         cache = updated
         orderedFiles = files
+        fileLabels = labelByPath
+    }
+
+    private fun sourceLabels(paths: List<String>): List<String> {
+        val base = project.basePath?.replace('\\', '/')?.trimEnd('/')
+        return paths.map { path ->
+            val root = resolve(path)
+            val dir = when {
+                root == null -> null
+                root.isDirectory -> root
+                else -> root.parent
+            }
+            val dirPath = dir?.path?.replace('\\', '/')?.trimEnd('/')
+            when {
+                dirPath == null -> path.replace('\\', '/').trimEnd('/').substringAfterLast('/')
+                base != null && dirPath == base -> dir!!.name
+                base != null && dirPath.startsWith("$base/") -> dirPath.removePrefix("$base/")
+                else -> dir!!.name
+            }
+        }
     }
 
     private fun clear() {
         cache = emptyMap()
         orderedFiles = emptyList()
+        fileLabels = emptyMap()
     }
 
     private fun resolve(path: String): VirtualFile? {
@@ -161,6 +191,17 @@ class TranslationService(private val project: Project) : Disposable {
         lfs.findFileByPath(normalized)?.let { return it }
         val base = project.basePath ?: return null
         return lfs.findFileByPath("$base/$normalized")
+    }
+
+    private fun collectJsonFiles(path: String): List<VirtualFile> {
+        val root = resolve(path) ?: return emptyList()
+        return if (root.isDirectory) {
+            root.children
+                .filter { !it.isDirectory && it.extension.equals("json", ignoreCase = true) }
+                .sortedBy { it.name }
+        } else {
+            listOf(root)
+        }
     }
 
     private fun parse(file: VirtualFile): Map<String, Entry> {

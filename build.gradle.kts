@@ -1,4 +1,5 @@
 import org.jetbrains.changelog.Changelog
+import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 plugins {
@@ -11,10 +12,20 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
 
     intellijPlatform {
-        intellijIdeaUltimate("2024.2.5")
+        intellijIdeaUltimate("2024.3")
         bundledPlugin("JavaScript")
         bundledPlugin("com.intellij.modules.json")
         testFramework(TestFrameworkType.Platform)
+    }
+}
+
+intellijPlatformTesting {
+    runIde {
+        register("runIdeWebStorm") {
+            type = IntelliJPlatformType.WebStorm
+            version = "262.8665.84"
+            useInstaller = true
+        }
     }
 }
 
@@ -35,7 +46,7 @@ intellijPlatform {
             )
         }
         ideaVersion {
-            sinceBuild = "242"
+            sinceBuild = "243"
             untilBuild = provider { null }
         }
     }

@@ -14,6 +14,7 @@ class I18nSettings : PersistentStateComponent<I18nSettings.State> {
 
     data class State(
         var translationFilePath: String = "",
+        var additionalTranslationFilePath: String = "",
         var enableT: Boolean = true,
         var enableI18nT: Boolean = true,
         var enableDollarT: Boolean = true,

@@ -4,6 +4,18 @@
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-07-06
+### Added
+- Optional second translation source: configure an additional file or folder (e.g. `lang/` plus `resources/lang/`) and see translations from both at once.
+- When a key exists in both sources, the popup groups results per source with the source path shown beneath each group; when it exists in only one, it renders as a plain single-source lookup.
+
+### Changed
+- Minimum supported IDE is now 2024.3 (was 2024.2).
+- The inline-badge view is disabled while a second translation source is configured (the popup view is used instead).
+
+### Fixed
+- Replaced deprecated and scheduled-for-removal platform APIs; the plugin now verifies clean against recommended IDEs.
+
 ## [1.0.1] - 2026-05-27
 ### Added
 - Recognize chained property access after a translation call: `t('forms').email.placeholder` resolves to the key `forms.email.placeholder` (any number of trailing `.segment` parts is supported).

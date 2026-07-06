@@ -2,6 +2,7 @@ package com.github.micf2f.i18nlookup.hover
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.EditorMouseHoverPopupManager
+import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.platform.backend.documentation.DocumentationLinkHandler
 import com.intellij.platform.backend.documentation.DocumentationTarget
 import com.intellij.platform.backend.documentation.LinkResolveResult
@@ -28,8 +29,9 @@ class I18nDocumentationLinkHandler : DocumentationLinkHandler {
     private fun closeHoverPopup() {
         val manager = EditorMouseHoverPopupManager.getInstance()
         runCatching {
-            @Suppress("DEPRECATION")
-            manager.documentationComponent?.hint?.cancel()
+            val method = manager.javaClass.getDeclaredMethod("getCurrentHint")
+            method.isAccessible = true
+            (method.invoke(manager) as? JBPopup)?.cancel()
         }
         runCatching {
             val method = manager.javaClass.declaredMethods.firstOrNull { m ->
