@@ -10,6 +10,8 @@
                 translation from your chosen language file.</li>
             <li>Point it at a single JSON file for one language, or at a folder of JSON files to see
                 every language at once &mdash; one row per file, with long lists scrolling inside the popup.</li>
+            <li>Add an optional second source (another file or folder) to look up translations from both
+                at once &mdash; when a key lives in both, each source's value is shown grouped under its path.</li>
             <li>Click a language in the popup to jump straight to that key in its JSON file.</li>
         </ul>
         <p>Configure the translation file or folder and recognized formats in
