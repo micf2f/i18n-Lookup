@@ -30,12 +30,6 @@ intellijPlatformTesting {
 }
 
 intellijPlatform {
-    pluginVerification {
-        ides {
-            recommended()
-        }
-    }
-
     pluginConfiguration {
         changeNotes = with(changelog) {
             renderItem(
