@@ -13,6 +13,7 @@ i18n-Lookup is a JetBrains IDE plugin for JavaScript and TypeScript projects. It
 - **Hover tooltip** — hover over a translation key to see the value in a popup.
 - **Inline badge** — render the translation as an inlay right next to the key, no hover needed.
 - **One language or many** — point it at a single JSON file (one language) or at a folder of JSON files (one row per language).
+- **Two sources at once** — optionally add a second file or folder (e.g. `lang/` plus `resources/lang/`). When a key exists in both, the popup shows each source's value grouped under its path; when it's in only one, it renders as a plain single-source lookup.
 - **Click-through navigation** — click a language in the popup, or `Ctrl`/`Cmd`+click an inline badge, to jump straight to that key in its JSON file.
 - **Nested *and* flat keys** — `{"a":{"b":"x"}}` and `{"a.b":"x"}` both resolve to `a.b`.
 - **Live refresh** — edits to your translation files show up immediately, no editor reload needed.
@@ -23,8 +24,8 @@ i18n-Lookup is a JetBrains IDE plugin for JavaScript and TypeScript projects. It
 
 Open **Settings | Tools | i18n Lookup** and configure:
 
-1. **Translation file or folder** — pick a single `*.json` file for one language, or a folder whose direct `*.json` children are each a language (e.g. `en.json`, `fr.json`, `de.json`).
-2. **Translations view** — *Tooltip on hover* (default) or *Inline in code*.
+1. **Translation file or folder** — pick a single `*.json` file for one language, or a folder whose direct `*.json` children are each a language (e.g. `en.json`, `fr.json`, `de.json`). Use **Add additional path** to include a second source (e.g. `lang/` plus `resources/lang/`); both are searched and shown together.
+2. **Translations view** — *Tooltip on hover* (default) or *Inline in code*. (The inline view is unavailable while a second source is configured — the popup is used.)
 3. **Recognized call formats** — toggle which built-in shapes to match.
 4. **Custom regex** — add a pattern if your project uses a call style not covered above; wrap the key in the first capture group `(…)`.
 
@@ -43,7 +44,7 @@ Works in any JetBrains IDE that bundles the JavaScript plugin:
 
 Free Community editions (IDEA Community, PyCharm Community, Android Studio) don't include JavaScript support and are not supported by this plugin.
 
-Compatible with IDE builds **242 (2024.2)** and newer.
+Compatible with IDE builds **243 (2024.3)** and newer.
 
 ## Installation
 
