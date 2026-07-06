@@ -23,6 +23,7 @@ class I18nInlayHintsProvider : InlayHintsProvider {
         val settings = I18nSettings.getInstance(file.project)
         if (settings.state.displayMode != I18nSettings.DisplayMode.INLINE) return null
         if (settings.state.translationFilePath.isBlank()) return null
+        if (TranslationService.getInstance(file.project).isMultiSource()) return null
         return Collector(file.project)
     }
 
@@ -43,6 +44,7 @@ class I18nInlayHintsProvider : InlayHintsProvider {
                 val results = service.lookupAll(match.key)
                 val offset = (match.end + 1).coerceIn(0, textLength)
                 val singleFile = results.size == 1
+                val duplicated = results.groupingBy { it.file.name }.eachCount().filterValues { it > 1 }.keys
 
                 if (results.none { it.value != null }) {
                     sink.addPresentation(
@@ -57,7 +59,11 @@ class I18nInlayHintsProvider : InlayHintsProvider {
                 }
 
                 results.forEachIndexed { order, result ->
-                    val lang = result.file.nameWithoutExtension
+                    val lang = if (result.file.name in duplicated) {
+                        "${result.file.parent?.name.orEmpty()}/${result.file.nameWithoutExtension}"
+                    } else {
+                        result.file.nameWithoutExtension
+                    }
                     val value = result.value
                     if (value != null) {
                         val payload = StringInlayActionPayload("${result.file.path}|${result.offset}")
